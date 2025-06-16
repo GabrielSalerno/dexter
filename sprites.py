@@ -23,8 +23,11 @@ def backgroundMenu():
     backgroundM = GameImage(spriteMenu)
     return backgroundM
 
-def backgroundJogo():
-    backgroundJ = GameImage(spriteJogo)
+def backgroundJogo(posx,posy):
+    backgroundJ = Sprite(spriteJogo,frames=1)
+    backgroundJ.x=posx
+    backgroundJ.y=posy
+    backgroundJ.set_position(backgroundJ.x,backgroundJ.y)
     return backgroundJ
 
 # Funções para colocar os botões na tela
@@ -58,16 +61,16 @@ def personagemPrincipal():
     jogador.set_position(jogador.x,jogador.y)
     return jogador
 
-def obstaculoMesa():
+def obstaculoMesa(janela):
     mesa = Sprite(spriteMesa,frames=1)
-    mesa.x = 400
+    mesa.x = janela.width + 50
     mesa.y = 525
     mesa.set_position(mesa.x,mesa.y)
     return mesa
 
-def obstaculoGabinete():
+def obstaculoGabinete(janela):
     gabinete = Sprite(spriteGabinete,frames=1)
-    gabinete.x = 1000
+    gabinete.x = janela.width + 50
     gabinete.y = 525
     gabinete.set_position(gabinete.x,gabinete.y)
     return gabinete
