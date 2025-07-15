@@ -1,6 +1,6 @@
 velxCenario = 265
 
-velxInimigos = 300
+velxInimigos = 350
 velxTiroInimigo = 500
 recargaTiroInimigo = 2.3
 tempoUltimoTiroInimigo = recargaTiroInimigo
@@ -40,7 +40,7 @@ valorAleatObstaculo = valorAleatInimigo = 0
 
 tempoTotal = 0
 tempoAumentarDif = 5
-tempoProxDif = 0
+tempoProxDif = 5
 
 inimigosDestruidos = 0
 

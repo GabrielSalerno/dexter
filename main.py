@@ -57,21 +57,19 @@ while(True):
             # Iniciando o tempo percorrido
             tempoTotal += janela.delta_time()
 
-            if tempoTotal >= tempoProxDif and tempoProxDif <=30:
+            if tempoTotal >= tempoProxDif:
                 tempoProxDif += tempoAumentarDif
                 
-                velxCenario += 35
-                velxObstaculo += 35
-                velxInimigos += 35
-                velxJogador += 35
+                velxCenario += 50
+                velxObstaculo += 50
+                velxInimigos += 50
+                velxJogador += 50
 
-                velxTiro += 35
-                velxTiroInimigo += 35
+                velxTiro += 50
+                velxTiroInimigo += 50
             
-                if(recargaInimigo >= 2):
-                    recargaInimigo -= 1
-                if(recargaObstaculo >= 2):
-                    recargaObstaculo -=1
+                recargaInimigo = max(1, recargaInimigo - 0.3)
+                recargaObstaculo = max(1, recargaObstaculo - 0.3)
                 recargaTiroInimigo = max(0.5, recargaTiroInimigo-0.2)
 
             # Tempo de recarga obstaculo iniciado
@@ -298,39 +296,6 @@ while(True):
                         inimigosDestruidos += 1
                         del tirosJogador[t]
 
-            for robo in robos:
-                for mesa in mesas:
-                    if robo.collided(mesa):
-                        # Se a base do robo estiver entre o topo da mesa e uma margem de 10 px acima
-                        if robo.y + robo.height >= mesa.y and robo.y + robo.height <= mesa.y + 10:
-                            # Posiciona o robo em cima da mesa
-                            robo.y = mesa.y - robo.height
-                        elif robo.x < mesa.x:
-                            # Se colidiu pela lateral esquerda, impede sobreposição horizontal
-                            robo.x = mesa.x - robo.width
-
-            for robo in robos:
-                for gabinete in gabinetes:
-                    if robo.collided(gabinete):
-                        if robo.y + robo.height >= gabinete.y and robo.y + robo.height <= gabinete.y + 10:
-                            robo.y = gabinete.y - robo.height
-                        elif robo.x < gabinete.x:
-                            robo.x = gabinete.x - robo.width
-            
-            for robo in robos:
-                em_cima_de_algo = False
-                for mesa in mesas:
-                    if robo.collided(mesa):
-                        em_cima_de_algo = True
-                for gabinete in gabinetes:
-                    if robo.collided(gabinete):
-                        em_cima_de_algo = True
-                
-                if not em_cima_de_algo and robo.y < posxJogadorInicial:
-                    robo.y += velPuloJogador * janela.delta_time()
-                    if robo.y > posxJogadorInicial:
-                        robo.y = posxJogadorInicial
-
 
             
 
@@ -452,6 +417,7 @@ while(True):
         # Resetando tempos e contadores
         tempoTotal = 0
         contadorDif = 0
+        tempoProxDif = 5
         recargaObstaculo = 7
         recargaInimigo = 10
         tempoUltimoTiro = 0.2
@@ -461,7 +427,7 @@ while(True):
         # Resetando velocidades
         velxCenario = 265
         velxObstaculo = 265
-        velxInimigos = 300
+        velxInimigos = 350
 
         # Resetando flags de controle
         mesaMovendo = False
