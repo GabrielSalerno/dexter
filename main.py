@@ -15,6 +15,7 @@ mou = Mouse()
 
 musicaFundo = Sound("sounds/magicFx.wav")
 musicaFundo.set_repeat(True)
+musicaFundo.set_volume(0.8)
 musicaFundo.play()
 
 backgroundM = backgroundMenu()
@@ -56,20 +57,22 @@ while(True):
             # Iniciando o tempo percorrido
             tempoTotal += janela.delta_time()
 
-            if int(tempoTotal // tempoAumentarDif) > tempoAumentarDif:
-                contadorDif += 1
+            if tempoTotal >= tempoProxDif and tempoProxDif <=30:
+                tempoProxDif += tempoAumentarDif
                 
-                velxCenario += 50
-                velxObstaculo += 50
-                velxInimigos += 50
+                velxCenario += 35
+                velxObstaculo += 35
+                velxInimigos += 35
+                velxJogador += 35
 
-                if (disMinObsIni >= 150):
-                    disMinObsIni -= 15
+                velxTiro += 35
+                velxTiroInimigo += 35
             
-                if(recargaInimigo >= 7):
+                if(recargaInimigo >= 2):
                     recargaInimigo -= 1
-                if(recargaObstaculo >= 4):
+                if(recargaObstaculo >= 2):
                     recargaObstaculo -=1
+                recargaTiroInimigo = max(0.5, recargaTiroInimigo-0.2)
 
             # Tempo de recarga obstaculo iniciado
             recargaObstaculo += janela.delta_time()
@@ -212,7 +215,8 @@ while(True):
 
                     if jogador.y >= posxJogadorInicial:
                         jogador.y = posxJogadorInicial
-                
+            
+
             if not invencivel:
                 for c in range(len(robos)-1,-1,-1):
                     if jogador.collided(robos[c]):
@@ -226,15 +230,6 @@ while(True):
                         jogador.x = drones[c].y
                         jogador.y = drones[c].x
                         invencivel = True
-
-            for c in range(len(tirosJogador)-1,-1,-1):
-                for mesa in mesas:
-                    if mesa.collided(tirosJogador[c]):
-                        del tirosJogador[c]
-                for gabinete in gabinetes:
-                    if gabinete.collided(tirosJogador[c]):
-                        del tirosJogador[c]
-
 
             if teclado.key_pressed("space") and tempoUltimoTiro >= recargaTiro:
                 tiroJ = tiroJogador(jogador,jogador.x,jogador.y)
@@ -264,7 +259,7 @@ while(True):
                 roboMovendo = True
                 valorAleatInimigo = 0
 
-                
+            
             if droneMovendo:
                 if len(drones) > 0:
                     for drone in drones:
@@ -275,7 +270,7 @@ while(True):
                 for c in range(len(drones)-1,-1,-1):
                     if drones[c].x + drones[c].width < 0:
                         del drones[c] # Apagar drone quando sai da tela
-                        
+
             if roboMovendo:
                 if len(robos)>0:
                     for robo in robos:
@@ -306,21 +301,38 @@ while(True):
             for robo in robos:
                 for mesa in mesas:
                     if robo.collided(mesa):
-                        robo.x = mesa.x + mesa.width
-                        robo.y = mesa.y + mesa.width
+                        # Se a base do robo estiver entre o topo da mesa e uma margem de 10 px acima
+                        if robo.y + robo.height >= mesa.y and robo.y + robo.height <= mesa.y + 10:
+                            # Posiciona o robo em cima da mesa
+                            robo.y = mesa.y - robo.height
+                        elif robo.x < mesa.x:
+                            # Se colidiu pela lateral esquerda, impede sobreposição horizontal
+                            robo.x = mesa.x - robo.width
+
+            for robo in robos:
                 for gabinete in gabinetes:
                     if robo.collided(gabinete):
-                        robo.x = gabinete.x + gabinete.width
-                        robo.y = gabinete.y + gabinete.width
-            for drone in drones:
+                        if robo.y + robo.height >= gabinete.y and robo.y + robo.height <= gabinete.y + 10:
+                            robo.y = gabinete.y - robo.height
+                        elif robo.x < gabinete.x:
+                            robo.x = gabinete.x - robo.width
+            
+            for robo in robos:
+                em_cima_de_algo = False
                 for mesa in mesas:
-                    if drone.collided(mesa):
-                        drone.x = mesa.x + mesa.width
-                        drone.y = mesa.y + mesa.width
+                    if robo.collided(mesa):
+                        em_cima_de_algo = True
                 for gabinete in gabinetes:
-                    if drone.collided(gabinete):
-                        drone.x = gabinete.x + gabinete.width
-                        drone.y = gabinete.y + gabinete.width
+                    if robo.collided(gabinete):
+                        em_cima_de_algo = True
+                
+                if not em_cima_de_algo and robo.y < posxJogadorInicial:
+                    robo.y += velPuloJogador * janela.delta_time()
+                    if robo.y > posxJogadorInicial:
+                        robo.y = posxJogadorInicial
+
+
+            
 
             # Jogador colidindo com tiro inimigo
             if tempoUltimoTiroInimigo >= recargaTiroInimigo:
@@ -385,13 +397,12 @@ while(True):
             interface75.draw()
         elif (vidaJogador == 1):
             interface35.draw()
-        elif (vidaJogador == 0):
-            interface00.draw()
 
         jogador.update()
         
         if vidaJogador <= 0:
             gameover = True
+            interface00.draw()
             # Calculo dos pontos
             pontos = int(tempoTotal) + (2*inimigosDestruidos)
             janela.draw_text(f"Pontuação:{pontos}", janela.width/2,janela.height/2+50,size=24,color=(0,0,0),font_name="Arial")
@@ -441,16 +452,16 @@ while(True):
         # Resetando tempos e contadores
         tempoTotal = 0
         contadorDif = 0
-        recargaObstaculo = 0
-        recargaInimigo = 0
-        tempoUltimoTiro = 0
-        tempoUltimoTiroInimigo = 0
+        recargaObstaculo = 7
+        recargaInimigo = 10
+        tempoUltimoTiro = 0.2
+        tempoUltimoTiroInimigo = 2.3
         tempo_invencivel = 0
 
         # Resetando velocidades
-        velxCenario = 200
-        velxObstaculo = 200
-        velxInimigos = 200
+        velxCenario = 265
+        velxObstaculo = 265
+        velxInimigos = 300
 
         # Resetando flags de controle
         mesaMovendo = False

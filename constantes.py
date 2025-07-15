@@ -1,11 +1,11 @@
 velxCenario = 265
 
-velxInimigos = 275
+velxInimigos = 300
 velxTiroInimigo = 500
 recargaTiroInimigo = 2.3
 tempoUltimoTiroInimigo = recargaTiroInimigo
 
-velPuloJogador = 500
+velPuloJogador = 450
 velxJogador = 400
 vidaJogador = 3
 posxJogadorInicial = 430
@@ -31,16 +31,16 @@ gabineteMovendo = False
 droneMovendo = False
 roboMovendo = False
 
-recargaObstaculo = 8
-recargaInimigo = 14
+recargaObstaculo = 7
+recargaInimigo = 10
 
 invencivel = False
 
 valorAleatObstaculo = valorAleatInimigo = 0
 
 tempoTotal = 0
-tempoAumentarDif = 10
-contadorDif = 0
+tempoAumentarDif = 5
+tempoProxDif = 0
 
 inimigosDestruidos = 0
 

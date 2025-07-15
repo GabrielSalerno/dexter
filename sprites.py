@@ -29,6 +29,7 @@ spriteGabinete = "sprites/gabinete.png"
 spriteTiroJogador = "sprites/tiroJogador.png"
 spriteTiroInimigo = "sprites/tiroInimigo.png"
 
+
 # Funções para colocar os planos de fundo na tela
 def backgroundMenu():
     backgroundM = GameImage(spriteMenu)
