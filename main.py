@@ -3,8 +3,8 @@ from PPlay.keyboard import *
 from PPlay.mouse import *
 from random import randint
 from sprites import *
-from colisao import *
-
+from constantes import *
+from arquivo import *
 
 janela = Window(1280,720)
 janela.set_title("Dexter Run")
@@ -13,40 +13,28 @@ teclado = Keyboard()
 mou = Mouse()
 
 backgroundM = backgroundMenu()
+backgroundLb = backgroundLeaderboard()
 
-backgroundJ1 = backgroundJogo(0,0)
-backgroundJ2 = backgroundJogo(backgroundJ1.width,0)
-velxCenario = 225
+backgroundJ1 = backgroundJogo("sprites/backgroundJogo.png",0,0)
+backgroundJ2 = backgroundJogo("sprites/backgroundJogo.png",backgroundJ1.width,0)
 
 botaoP = botaoPlay(janela)
 botaoL = botaoLeaderboard(janela)
 botaoE = botaoExit(janela)
 
-jogador = personagemPrincipal()
-velPuloJogador = 500
-velxJogador = 400
-vidaJogador = 3
+interface = interfaceVida()
 
-invencivel = False
-tempo_invencivel = 0
+jogador = personagemPrincipal()
+jogadorMenu = personagemMenu()
+
+tirosJogador = list()
 
 mesas = list()
 gabinetes = list()
-velxObstaculo = velxCenario
 
-menuIniciado = True
-jogoIniciado = False
-leadearboardIniciado = False
-jogadorPulando = False
-
-mesaMovendo = False
-gabineteMovendo = False
-
-recargaObstaculo = 5
-
-valorAleat = 0
-
-gameover = False
+drones = list()
+robos = list()
+tirosInimigos = list()
 
 while(True):
     # Tela do jogo
@@ -57,8 +45,30 @@ while(True):
                 jogoIniciado = False
 
         if not gameover:
+            # Iniciando o tempo percorrido
+            tempoTotal += janela.delta_time()
+
+            if int(tempoTotal // tempoAumentarDif) > tempoAumentarDif:
+                contadorDif += 1
+                
+                velxCenario += 10
+                velxObstaculo += 10
+                velxInimigos += 10
+            
+                if(recargaInimigo <= 7):
+                    recargaInimigo -= 1
+                if(recargaObstaculo <= 4):
+                    recargaObstaculo -=1
+
             # Tempo de recarga obstaculo iniciado
             recargaObstaculo += janela.delta_time()
+
+            # Tempo de recarga monstro iniciado
+            recargaInimigo += janela.delta_time()
+            tempoUltimoTiroInimigo += janela.delta_time()
+
+            # Tempo de recarga tiro do jogador
+            tempoUltimoTiro += janela.delta_time()
 
             # Fazendo loop no cenario de fundo
             backgroundJ1.x += velxCenario * janela.delta_time() * -1
@@ -79,44 +89,41 @@ while(True):
                 if jogadorSubindo:
                     jogador.y += velPuloJogador * janela.delta_time()* -1
 
-                    if jogador.y <= 250:
-                        jogador.y = 250
+                    if jogador.y <= alturaPulo:
+                        jogador.y = alturaPulo
                         jogadorDescendo = True
                         jogadorSubindo = False
 
                 if jogadorDescendo:
                     jogador.y += velPuloJogador * janela.delta_time() 
 
-                    if jogador.y >= 400:
-                        jogador.y = 400
+                    if jogador.y >= posxJogadorInicial:
+                        jogador.y = posxJogadorInicial
                         jogadorDescendo = False
                         jogadorPulando = False
             
             # Apertar seta da direita para o jogador andar para frente
             if teclado.key_pressed("right"):
                 jogador.x += velxJogador * janela.delta_time()
-                #jogador.update()
             
             if teclado.key_pressed("left"):
                 jogador.x += velxJogador * janela.delta_time() *-1
             
             # Obstaculos se movendo
             if recargaObstaculo >= 5:
-                valorAleat = randint(1,10)
+                valorAleatObstaculo = randint(1,10)
                 recargaObstaculo = 0
             
-            if valorAleat > 5:
+            if valorAleatObstaculo > 5:
                 mesa = obstaculoMesa(janela)
                 mesas.append(mesa)
-                print("mesa")
                 mesaMovendo=True
-                valorAleat = 0
-            elif valorAleat<=5 and valorAleat>0:
+                valorAleatObstaculo = 0
+            elif valorAleatObstaculo <= 5 and valorAleatObstaculo>0:
                 gabinete = obstaculoGabinete(janela)
                 gabinetes.append(gabinete)
-                print("gabinete")
                 gabineteMovendo = True
-                valorAleat = 0
+                valorAleatObstaculo = 0
             
             if mesaMovendo:
                 if len(mesas) > 0:
@@ -126,7 +133,7 @@ while(True):
                     mesaMovendo = False
                 for c in range(len(mesas)-1,-1,-1):
                     if mesas[c].x + mesas[c].width < 0:
-                        del mesas[c] # Apagar mesa qando sai da tela
+                        del mesas[c] # Apagar mesa quando sai da tela
                     
             if gabineteMovendo:
                 if len(gabinetes)>0:
@@ -136,7 +143,7 @@ while(True):
                     gabineteMovendo = False
                 for c in range(len(gabinetes)-1,-1,-1):
                     if gabinetes[c].x + gabinetes[c].width < 0:
-                        del gabinetes[c] # Apagar gabinete qando sai da tela
+                        del gabinetes[c] # Apagar gabinete quando sai da tela
 
             # Colidindo jogador com as paredes
             if jogador.x < 0:
@@ -160,11 +167,11 @@ while(True):
                         jogador.y = gabinete.y - jogador.height
                         invencivel = True
             
-                if not jogador.collided(gabinete) and jogador.y < 400 and not jogadorPulando:
+                if not jogador.collided(gabinete) and jogador.y < posxJogadorInicial and not jogadorPulando:
                     jogador.y += velPuloJogador * janela.delta_time()
 
-                    if jogador.y >= 400:
-                        jogador.y = 400
+                    if jogador.y >= posxJogadorInicial:
+                        jogador.y = posxJogadorInicial
 
             for mesa in mesas:
                 if jogador.collided(mesa):
@@ -180,17 +187,122 @@ while(True):
                         jogador.y = mesa.y - jogador.height
                         invencivel = True
                     
-                if not jogador.collided(mesa) and jogador.y < 400 and not jogadorPulando:
+                if not jogador.collided(mesa) and jogador.y < posxJogadorInicial and not jogadorPulando:
                     jogador.y += velPuloJogador * janela.delta_time()
 
-                    if jogador.y >= 400:
-                        jogador.y = 400
+                    if jogador.y >= posxJogadorInicial:
+                        jogador.y = posxJogadorInicial
+                
+            if not invencivel:
+                for c in range(len(robos)-1,-1,-1):
+                    if jogador.collided(robos[c]):
+                        vidaJogador -= 1
+                        jogador.x = robos[c].y
+                        jogador.y = robos[c].x
+                        print("-1 vida")
+                        invencivel = True
+                for c in range(len(drones)-1,-1,-1):
+                    if jogador.collided(drones[c]):
+                        vidaJogador -= 1
+                        jogador.x = drones[c].y
+                        jogador.y = drones[c].x
+                        print("-1 vida")
+                        invencivel = True
 
+
+
+            if teclado.key_pressed("space") and tempoUltimoTiro >= recargaTiro:
+                tiroJ = tiroJogador(jogador,jogador.x,jogador.y)
+                tirosJogador.append(tiroJ)
+                tempoUltimoTiro = 0
+            
+            if len(tirosJogador)>0:
+                for tiro in tirosJogador:
+                    tiro.x += velxTiro * janela.delta_time()
+            
+            for c in range(len(tirosJogador)-1,-1,-1):
+                if tirosJogador[c].x + tirosJogador[c].width > janela.width:
+                    del tirosJogador[c]
+
+            # Inimigos se movendo
+            if recargaInimigo >= 10:
+                valorAleatInimigo = randint(1,10)
+                recargaInimigo = 0
+                
+            if valorAleatInimigo > 5:
+                drone = droneVermelhoWalk(janela)
+                drones.append(drone)
+                droneMovendo=True
+                valorAleatInimigo = 0
+            elif valorAleatInimigo <= 5 and valorAleatInimigo>0:
+                robo = roboVerdeWalk(janela)
+                robos.append(robo)
+                roboMovendo = True
+                valorAleatInimigo = 0
+                
+            if droneMovendo:
+                if len(drones) > 0:
+                    for drone in drones:
+                        drone.x += velxInimigos * janela.delta_time() *-1
+                        drone.update()
+                else:
+                    droneMovendo = False
+                for c in range(len(drones)-1,-1,-1):
+                    if drones[c].x + drones[c].width < 0:
+                        del drones[c] # Apagar drone quando sai da tela
+                        
+            if roboMovendo:
+                if len(robos)>0:
+                    for robo in robos:
+                        robo.x += velxInimigos * janela.delta_time() *-1
+                        robo.update()
+                else:
+                    roboMovendo = False
+                for c in range(len(robos)-1,-1,-1):
+                    if robos[c].x + robos[c].width < 0:
+                        del robos[c] # Apagar robo quando sai da tela
+            
+            # Inimigos colidindo
+            for t in range(len(tirosJogador)-1,-1,-1):
+                tiro = tirosJogador[t]
+                for c in range(len(robos)-1,-1,-1):
+                    if robos[c].collided(tiro):
+                        del robos[c]
+                        inimigosDestruidos += 1
+                        del tirosJogador[t]
+            for t in range(len(tirosJogador)-1,-1,-1):
+                tiro = tirosJogador[t]
+                for c in range(len(drones)-1,-1,-1):
+                    if drones[c].collided(tiro):
+                        del drones[c]
+                        inimigosDestruidos += 1
+                        del tirosJogador[t]
+
+            # Jogador colidindo com tiro inimigo
+            if tempoUltimoTiroInimigo >= recargaTiroInimigo:
+                inimigosPossiveis = robos + drones
+                if len(inimigosPossiveis)>0:
+                    atirador = inimigosPossiveis[randint(0,len(inimigosPossiveis)-1)]
+                    tiroI = tiroInimigo(atirador,atirador.x,atirador.y)
+                    tirosInimigos.append(tiroI)
+                tempoUltimoTiroInimigo = 0
+            
+            if len(tirosInimigos)> 0:
+                for tiroI in tirosInimigos:
+                    tiroI.x += velxTiroInimigo * janela.delta_time() *-1
+            
+            if len(tirosInimigos)>0:
+                for tiroI in tirosInimigos:
+                    if tiroI.collided(jogador) and not invencivel:
+                        vidaJogador -= 1
+                        invencivel = True
+                        tirosInimigos.remove(tiroI)
+                    elif tiroI.x + tiroI.width < 0:
+                        tirosInimigos.remove(tiroI)
 
         # Desenhando todos objetos do jogo
         backgroundJ1.draw()
         backgroundJ2.draw()
-
         # Jogador pisca invencivel
         if invencivel:
             tempo_invencivel += janela.delta_time()
@@ -202,26 +314,54 @@ while(True):
         else:
             if not gameover:
                 jogador.draw()
-
+        
         for mesa in mesas:
             mesa.draw()
 
         for gabinete in gabinetes:
             gabinete.draw()
+        
+        for tiroJ in tirosJogador:
+            tiroJ.draw()
 
-        janela.draw_text(str(vidaJogador), janela.width/2,50,size=24,color=(0,0,0),font_name="Arial")
+        for robo in robos:
+            robo.draw()
+        
+        for drone in drones:
+            drone.draw()
+        
+        for tiroI in tirosInimigos:
+            tiroI.draw()
 
-        janela.draw_text("{:.1f}".format(recargaObstaculo),50,50,size=24,color=(0,0,0),font_name="Arial")
+        janela.draw_text(f"{tempoTotal:.0f}m",janela.width-50,25,size=24,color=(0,0,0),font_name="Arial")
 
-        if vidaJogador == 0:
+        interface.draw()
+
+        jogador.update()
+        
+        if vidaJogador <= 0:
             gameover = True
-
-        if gameover:
+            # Calculo dos pontos
+            pontos = int(tempoTotal) + (2*inimigosDestruidos)
+            janela.draw_text(f"Pontuação:{pontos}", janela.width/2,janela.height/2+50,size=24,color=(0,0,0),font_name="Arial")
             janela.draw_text("Game over", janela.width/2,janela.height/2,size=24,color=(0,0,0),font_name="Arial")
+
+            if not rankingRegistrado:
+                nome = input("Nome: ")
+                criarRanking(nome,pontos)
+                rankingRegistrado = True
+            jogo_iniciado = False
 
     # Tela do learderboard
     if leadearboardIniciado == True:
-        janela.set_background_color([0,0,0])
+        backgroundLb.draw()
+        janela.draw_text("TOP 5 RANKING", janela.width/2 - 120, 150, size=30, color=(255, 255, 255))
+        ranking = lerRanking()
+        y = 200
+        for i, (nome, pontuacao, data) in enumerate(ranking):
+            texto = f"{i+1}. {nome} - {pontuacao} pts - {data}"
+            janela.draw_text(texto, janela.width/2 - 170, y, size=25, color=(255, 255, 255))
+            y += 50
 
         # Apertar esc para voltar ao menu
         if teclado.key_pressed("esc"):
@@ -229,15 +369,49 @@ while(True):
             leadearboardIniciado = False
 
     # Tela do menu
-    #menuIniciado(botaoP,botaoL,botaoE,janela)
     
     if menuIniciado == True:
-        # Reiniciando o jogo
+        # Reiniciando variáveis do jogo
         gameover = False
+        inimigosDestruidos = 0
         vidaJogador = 3
         jogador.x = 50
-        jogador.y = 400
-        jogador.set_position(jogador.x,jogador.y)
+        jogador.y = posxJogadorInicial
+        jogador.set_position(jogador.x, jogador.y)
+
+        # Resetando listas
+        mesas.clear()
+        gabinetes.clear()
+        robos.clear()
+        drones.clear()
+        tirosJogador.clear()
+        tirosInimigos.clear()
+
+        # Resetando tempos e contadores
+        tempoTotal = 0
+        contadorDif = 0
+        recargaObstaculo = 0
+        recargaInimigo = 0
+        tempoUltimoTiro = 0
+        tempoUltimoTiroInimigo = 0
+        tempo_invencivel = 0
+
+        # Resetando velocidades
+        velxCenario = 200
+        velxObstaculo = 200
+        velxInimigos = 200
+
+        # Resetando flags de controle
+        mesaMovendo = False
+        gabineteMovendo = False
+        droneMovendo = False
+        roboMovendo = False
+        invencivel = False
+
+        # Resetar valores aleatórios se necessário
+        valorAleatObstaculo = 0
+        valorAleatInimigo = 0
+
 
         # Clicando botão play
         if mou.is_over_area([botaoP.x,botaoP.y],[botaoP.x+botaoP.width,botaoP.y+botaoP.height]):
@@ -258,6 +432,8 @@ while(True):
 
         # Desenhando todos objetos do menu
         backgroundM.draw()
+        jogadorMenu.draw()
+        jogadorMenu.update()
         botaoP.draw()
         botaoL.draw()
         botaoE.draw()
