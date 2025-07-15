@@ -1,6 +1,7 @@
 from PPlay.window import *
 from PPlay.keyboard import *
 from PPlay.mouse import *
+from PPlay.sound import *
 from random import randint
 from sprites import *
 from constantes import *
@@ -12,6 +13,10 @@ janela.set_title("Dexter Run")
 teclado = Keyboard()
 mou = Mouse()
 
+musicaFundo = Sound("sounds/magicFx.wav")
+musicaFundo.set_repeat(True)
+musicaFundo.play()
+
 backgroundM = backgroundMenu()
 backgroundLb = backgroundLeaderboard()
 
@@ -22,7 +27,10 @@ botaoP = botaoPlay(janela)
 botaoL = botaoLeaderboard(janela)
 botaoE = botaoExit(janela)
 
-interface = interfaceVida()
+interface100 = interfaceVida("sprites/idleVidaBoneco.png")
+interface75 = interfaceVida("sprites/idleVidaBoneco-1.png")
+interface35 = interfaceVida("sprites/idleVidaBoneco-2.png")
+interface00 = interfaceVida("sprites/idleVidaBoneco-3.png")
 
 jogador = personagemPrincipal()
 jogadorMenu = personagemMenu()
@@ -51,13 +59,16 @@ while(True):
             if int(tempoTotal // tempoAumentarDif) > tempoAumentarDif:
                 contadorDif += 1
                 
-                velxCenario += 10
-                velxObstaculo += 10
-                velxInimigos += 10
+                velxCenario += 50
+                velxObstaculo += 50
+                velxInimigos += 50
+
+                if (disMinObsIni >= 150):
+                    disMinObsIni -= 15
             
-                if(recargaInimigo <= 7):
+                if(recargaInimigo >= 7):
                     recargaInimigo -= 1
-                if(recargaObstaculo <= 4):
+                if(recargaObstaculo >= 4):
                     recargaObstaculo -=1
 
             # Tempo de recarga obstaculo iniciado
@@ -166,6 +177,11 @@ while(True):
                         jogador.x = gabinete.x - jogador.width
                         jogador.y = gabinete.y - jogador.height
                         invencivel = True
+                    
+                    elif invencivel:
+                        jogador.x = gabinete.x - jogador.width
+                        jogador.y = gabinete.y - jogador.height
+
             
                 if not jogador.collided(gabinete) and jogador.y < posxJogadorInicial and not jogadorPulando:
                     jogador.y += velPuloJogador * janela.delta_time()
@@ -187,6 +203,10 @@ while(True):
                         jogador.y = mesa.y - jogador.height
                         invencivel = True
                     
+                    elif invencivel:
+                        jogador.x = mesa.x - jogador.width
+                        jogador.y = mesa.y - jogador.height
+                    
                 if not jogador.collided(mesa) and jogador.y < posxJogadorInicial and not jogadorPulando:
                     jogador.y += velPuloJogador * janela.delta_time()
 
@@ -199,16 +219,21 @@ while(True):
                         vidaJogador -= 1
                         jogador.x = robos[c].y
                         jogador.y = robos[c].x
-                        print("-1 vida")
                         invencivel = True
                 for c in range(len(drones)-1,-1,-1):
                     if jogador.collided(drones[c]):
                         vidaJogador -= 1
                         jogador.x = drones[c].y
                         jogador.y = drones[c].x
-                        print("-1 vida")
                         invencivel = True
 
+            for c in range(len(tirosJogador)-1,-1,-1):
+                for mesa in mesas:
+                    if mesa.collided(tirosJogador[c]):
+                        del tirosJogador[c]
+                for gabinete in gabinetes:
+                    if gabinete.collided(tirosJogador[c]):
+                        del tirosJogador[c]
 
 
             if teclado.key_pressed("space") and tempoUltimoTiro >= recargaTiro:
@@ -223,12 +248,11 @@ while(True):
             for c in range(len(tirosJogador)-1,-1,-1):
                 if tirosJogador[c].x + tirosJogador[c].width > janela.width:
                     del tirosJogador[c]
-
-            # Inimigos se movendo
+            
             if recargaInimigo >= 10:
                 valorAleatInimigo = randint(1,10)
                 recargaInimigo = 0
-                
+
             if valorAleatInimigo > 5:
                 drone = droneVermelhoWalk(janela)
                 drones.append(drone)
@@ -239,6 +263,7 @@ while(True):
                 robos.append(robo)
                 roboMovendo = True
                 valorAleatInimigo = 0
+
                 
             if droneMovendo:
                 if len(drones) > 0:
@@ -277,6 +302,25 @@ while(True):
                         del drones[c]
                         inimigosDestruidos += 1
                         del tirosJogador[t]
+
+            for robo in robos:
+                for mesa in mesas:
+                    if robo.collided(mesa):
+                        robo.x = mesa.x + mesa.width
+                        robo.y = mesa.y + mesa.width
+                for gabinete in gabinetes:
+                    if robo.collided(gabinete):
+                        robo.x = gabinete.x + gabinete.width
+                        robo.y = gabinete.y + gabinete.width
+            for drone in drones:
+                for mesa in mesas:
+                    if drone.collided(mesa):
+                        drone.x = mesa.x + mesa.width
+                        drone.y = mesa.y + mesa.width
+                for gabinete in gabinetes:
+                    if drone.collided(gabinete):
+                        drone.x = gabinete.x + gabinete.width
+                        drone.y = gabinete.y + gabinete.width
 
             # Jogador colidindo com tiro inimigo
             if tempoUltimoTiroInimigo >= recargaTiroInimigo:
@@ -333,9 +377,16 @@ while(True):
         for tiroI in tirosInimigos:
             tiroI.draw()
 
-        janela.draw_text(f"{tempoTotal:.0f}m",janela.width-50,25,size=24,color=(0,0,0),font_name="Arial")
+        janela.draw_text(f"{tempoTotal:.0f}s",janela.width-50,25,size=24,color=(0,0,0),font_name="Arial")
 
-        interface.draw()
+        if (vidaJogador== 3):
+            interface100.draw()
+        elif (vidaJogador==2):
+            interface75.draw()
+        elif (vidaJogador == 1):
+            interface35.draw()
+        elif (vidaJogador == 0):
+            interface00.draw()
 
         jogador.update()
         

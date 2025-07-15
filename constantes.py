@@ -7,7 +7,7 @@ tempoUltimoTiroInimigo = recargaTiroInimigo
 
 velPuloJogador = 500
 velxJogador = 400
-vidaJogador = 5
+vidaJogador = 3
 posxJogadorInicial = 430
 
 velxTiro = 220
@@ -47,3 +47,5 @@ inimigosDestruidos = 0
 gameover = False
 
 rankingRegistrado = False
+
+tempoUltimoObstaculo = 0

@@ -29,9 +29,6 @@ spriteGabinete = "sprites/gabinete.png"
 spriteTiroJogador = "sprites/tiroJogador.png"
 spriteTiroInimigo = "sprites/tiroInimigo.png"
 
-# Sprite interface
-spriteInterface = "sprites/idleVidaBoneco.png"
-
 # Funções para colocar os planos de fundo na tela
 def backgroundMenu():
     backgroundM = GameImage(spriteMenu)
@@ -116,37 +113,13 @@ def roboVerdeWalk(janela):
     roboVerdeW.set_position(roboVerdeW.x,roboVerdeW.y)
     return roboVerdeW
 
-def roboVerdeDeath(janela):
-    roboVerdeD = Sprite(spriteRoboVerdeDeath,frames=4)
-    roboVerdeD.set_total_duration(1000)
-    roboVerdeD.x = janela.width + 50
-    roboVerdeD.y = 400
-    roboVerdeD.set_position(roboVerdeD.x,roboVerdeD.y)
-    return roboVerdeD
-
-def roboVerdeAttack(janela):
-    roboVerdeA = Sprite(spriteRoboVerdeAttack,frames=4)
-    roboVerdeA.set_total_duration(1000)
-    roboVerdeA.x = janela.width + 50
-    roboVerdeA.y = 400
-    roboVerdeA.set_position(roboVerdeA.x,roboVerdeA.y)
-    return roboVerdeA
-
 def droneVermelhoWalk(janela):
     droneVermelhoW = Sprite(spriteDroneVermelhoWalk,frames=4)
     droneVermelhoW.set_total_duration(1000)
     droneVermelhoW.x = janela.width + 50
-    droneVermelhoW.y = 250
+    droneVermelhoW.y = 300
     droneVermelhoW.set_position(droneVermelhoW.x,droneVermelhoW.y)
     return droneVermelhoW
-
-def droneVermelhoDeath(janela):
-    droneVermelhoD = Sprite(spriteDroneVermelhoDeath,frames=6)
-    droneVermelhoD.set_total_duration(1000)
-    droneVermelhoD.x = janela.width + 50
-    droneVermelhoD.y = 250
-    droneVermelhoD.set_position(droneVermelhoD.x,droneVermelhoD.y)
-    return droneVermelhoD
 
 def tiroInimigo(inimigo,inimigox,inimigoy):
     tiroI = Sprite(spriteTiroInimigo,frames=1)
@@ -155,7 +128,7 @@ def tiroInimigo(inimigo,inimigox,inimigoy):
     tiroI.set_position(tiroI.x,tiroI.y)
     return tiroI
 
-def interfaceVida():
+def interfaceVida(spriteInterface):
     interface = Sprite(spriteInterface,frames=1)
     interface.x = 50
     interface.y = 50
